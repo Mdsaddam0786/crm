@@ -33,7 +33,7 @@ function Field({ meta, col, rec, onCopy }) {
 
 export default function ListingDetail() {
   const { id } = useParams();
-  const { meta, notify, canEdit, isAdmin, reload } = useApp();
+  const { meta, notify, canEdit, canDelete, reload } = useApp();
   const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -113,7 +113,7 @@ export default function ListingDetail() {
             {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="btn-secondary"><MessageCircle className="h-4 w-4" aria-hidden />WhatsApp<ExternalLink className="h-3 w-3 opacity-60" aria-hidden /></a>}
             {/^https?:\/\//.test(map) && <a href={map} target="_blank" rel="noopener noreferrer" className="btn-secondary"><MapPin className="h-4 w-4" aria-hidden />Map<ExternalLink className="h-3 w-3 opacity-60" aria-hidden /></a>}
             {canEdit && <Link to={`/listings/${encodeURIComponent(rec.id)}/edit`} className="btn-secondary"><Pencil className="h-4 w-4" aria-hidden />Edit</Link>}
-            {isAdmin && <button className="btn-secondary text-red-600 hover:border-red-200 hover:bg-red-50" onClick={remove} disabled={deleting}><Trash2 className="h-4 w-4" aria-hidden />Delete</button>}
+            {canDelete && <button className="btn-secondary text-red-600 hover:border-red-200 hover:bg-red-50" onClick={remove} disabled={deleting}><Trash2 className="h-4 w-4" aria-hidden />Delete</button>}
           </div>
         </div>
       </div>

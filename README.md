@@ -46,7 +46,18 @@ Export your current list as CSV (in Google Sheets: *File → Download → Comma-
 
 Columns are matched by header name (e.g. "JV ID", "REA NO", "GOOGLE PIN", "ROAD WIDTH"). Unrecognised columns are reported and skipped. Ratios that spreadsheets turned into times (`60:40:00`) are restored to `60:40`.
 
-## Deploying to Vercel
+## Deploying to Vercel without a database (read-only)
+
+The fastest way to go live. Listings are supplied in the `JV_DATA` environment variable, so company data never enters the repository.
+
+1. In the spreadsheet: *File → Download → Comma-separated values (.csv)*. Open the file in Notepad, select all, and copy.
+2. Vercel → project → *Settings → Environment Variables*: add `JV_DATA` and paste the CSV as the value. Also add `SESSION_SECRET`, `APP_USERS`, `NODE_ENV=production` and `TRUST_PROXY=true`.
+3. Redeploy. The CRM shows the listings with search, filters, dashboard and reports. Add/Edit/Delete/Import are hidden.
+4. To change listings, update `JV_DATA` and redeploy. To enable editing in the app, add `MONGODB_URI` (below).
+
+`JV_DATA` also accepts a JSON array of objects keyed by field name.
+
+## Deploying to Vercel with MongoDB (editable)
 
 1. **Create a MongoDB database.** Use the free tier at [MongoDB Atlas](https://www.mongodb.com/atlas), or *Vercel → Storage / Marketplace → MongoDB Atlas*, which sets `MONGODB_URI` for you.
    - In Atlas, open *Network Access* and allow `0.0.0.0/0`. Vercel has no fixed IP addresses.

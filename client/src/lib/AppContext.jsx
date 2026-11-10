@@ -44,7 +44,10 @@ export function AppProvider({ children }) {
   const value = useMemo(() => ({
     user, setUser, logout, meta, metaError, version, reload, toast, notify,
     isAdmin: user?.role === 'admin',
-    canEdit: user?.role === 'admin' || user?.role === 'editor',
+    // Built-in (JV_DATA) deployments are read-only: hide every write action.
+    readOnly: meta?.storage === 'static',
+    canEdit: (user?.role === 'admin' || user?.role === 'editor') && meta?.storage !== 'static',
+    canDelete: user?.role === 'admin' && meta?.storage !== 'static',
   }), [user, logout, meta, metaError, version, reload, toast, notify]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

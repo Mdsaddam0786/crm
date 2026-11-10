@@ -7,6 +7,7 @@ import { Badge, Card, ErrorState, PageHeader, Skeleton, Spinner } from '../compo
 const STORAGE_LABELS = {
   mongodb: 'MongoDB database',
   file: 'Local data file (single server)',
+  static: 'Built-in data (JV_DATA, read-only)',
   none: 'Not configured',
 };
 
@@ -99,7 +100,7 @@ function ImportCard() {
 }
 
 export default function Settings() {
-  const { user, isAdmin, logout } = useApp();
+  const { user, isAdmin, readOnly, logout } = useApp();
   const { data: s } = useApi('/system/status');
 
   return (
@@ -113,7 +114,7 @@ export default function Settings() {
                 <div className={`mb-4 flex items-start gap-3 rounded-lg p-4 ${s.error ? 'bg-red-50' : 'bg-brand-50'}`}>
                   {s.error ? <XCircle className="mt-0.5 h-5 w-5 text-red-600" /> : <CheckCircle2 className="mt-0.5 h-5 w-5 text-brand-600" />}
                   <div className="text-sm">
-                    <p className={`font-semibold ${s.error ? 'text-red-800' : 'text-brand-800'}`}>{s.error ? 'Database unavailable' : 'Database connected'}</p>
+                    <p className={`font-semibold ${s.error ? 'text-red-800' : 'text-brand-800'}`}>{s.error ? 'Data unavailable' : s.storage === 'static' ? 'Built-in data loaded' : 'Database connected'}</p>
                     <p className={s.error ? 'text-red-700' : 'text-brand-700'}>{s.error ? `${s.error.message} ${s.error.hint || ''}` : `${s.records} listings stored.`}</p>
                   </div>
                 </div>
@@ -121,13 +122,19 @@ export default function Settings() {
                   <Row k="Storage"><span className="inline-flex items-center gap-1.5"><Database className="h-4 w-4 text-slate-400" aria-hidden />{STORAGE_LABELS[s.storage] || s.storage}</span></Row>
                   {s.database && <Row k="Database name"><code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs">{s.database}</code></Row>}
                 </dl>
+                {s.storage === 'static' && s.records === 0 && (
+                  <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">No listings loaded. Paste your listings CSV into the <code>JV_DATA</code> environment variable on Vercel and redeploy.</p>
+                )}
+                {s.storage === 'static' && s.records > 0 && (
+                  <p className="mt-4 rounded-lg border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900">This deployment is read-only. To change listings, update the <code>JV_DATA</code> environment variable and redeploy — or set <code>MONGODB_URI</code> to enable adding and editing.</p>
+                )}
                 {s.storage === 'file' && isAdmin && (
                   <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Data is saved in a file on this computer (<code>data/listings.json</code>). Back it up regularly, or set <code>MONGODB_URI</code> to use a hosted database — required for Vercel.</p>
                 )}
               </>
             )}
           </Card>
-          {isAdmin && <ImportCard />}
+          {isAdmin && !readOnly && <ImportCard />}
         </div>
 
         <div className="space-y-6">

@@ -59,7 +59,7 @@ export default function Dashboard() {
       />
 
       {!s || !meta ? <LoadingCards /> : s.totalRecords === 0 ? (
-        <Card><EmptyState icon={Table2} title="No listings yet" message={canEdit ? 'Add your first JV listing, or import existing ones from a CSV file in Settings.' : 'Listings will appear here once your team adds them.'} action={canEdit && <Link to="/listings/new" className="btn-primary">Add a listing</Link>} /></Card>
+        <Card><EmptyState icon={Table2} title="No listings yet" message={canEdit ? 'Add your first JV listing, or import existing ones from a CSV file in Settings.' : 'No listings are loaded yet. An administrator needs to add them (JV_DATA on Vercel).'} action={canEdit && <Link to="/listings/new" className="btn-primary">Add a listing</Link>} /></Card>
       ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

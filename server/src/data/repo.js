@@ -102,12 +102,30 @@ function fileRepo() {
   };
 }
 
-function unconfiguredRepo() {
-  const fail = async () => {
-    throw new StoreError('No database is configured.', { status: 503, code: 'DB_NOT_CONFIGURED', hint: 'Set MONGODB_URI in the Vercel project (Settings → Environment Variables), then redeploy.' });
+/**
+ * Read-only listings supplied through the JV_DATA environment variable (CSV text or a JSON array).
+ * Lets the CRM run on Vercel with no database while keeping company data out of the repository.
+ */
+function staticRepo() {
+  let docs;
+  const readOnly = async () => {
+    throw new StoreError('Listings are read-only in this deployment.', { status: 403, code: 'READ_ONLY', hint: 'Update the JV_DATA environment variable and redeploy, or configure MONGODB_URI to enable editing.' });
   };
-  return { kind: 'none', all: fail, insertMany: fail, update: fail, remove: fail };
+  return {
+    kind: 'static',
+    async all() {
+      if (!docs) docs = (await import('./staticData.js')).parseStaticData(process.env.JV_DATA || '');
+      return docs;
+    },
+    insertMany: readOnly,
+    update: readOnly,
+    remove: readOnly,
+  };
 }
 
-// Vercel's filesystem is ephemeral, so a database is mandatory there.
-export const repo = config.mongoUri ? mongoRepo() : config.isVercel ? unconfiguredRepo() : fileRepo();
+// Vercel's filesystem is ephemeral: use MongoDB if configured, otherwise read-only JV_DATA.
+export const repo = config.mongoUri
+  ? mongoRepo()
+  : process.env.JV_DATA != null || config.isVercel
+    ? staticRepo()
+    : fileRepo();
