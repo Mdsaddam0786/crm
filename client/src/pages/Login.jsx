@@ -37,7 +37,7 @@ export default function Login() {
           </div>
           <div>
             <h1 className="max-w-md text-4xl font-semibold leading-tight tracking-tight text-white">Every joint-venture land listing, searchable in seconds.</h1>
-            <p className="mt-4 max-w-md text-slate-400">Live from the company JV Listing sheet — search, filter and open any record without digging through the spreadsheet.</p>
+            <p className="mt-4 max-w-md text-slate-400">Add, update and find any JV land listing in seconds — one shared, searchable record for the whole team.</p>
           </div>
           <p className="flex items-center gap-2 text-sm text-slate-500"><ShieldCheck className="h-4 w-4" aria-hidden /> Private company data · Authorised employees only</p>
         </div>

@@ -18,7 +18,7 @@ const ROLE_ORDER = ['feasibility', 'updatedBy', 'rating', 'sharing', 'status', '
 
 export function filterableColumns(meta) {
   const rank = (c) => (c.role ? ROLE_ORDER.indexOf(c.role) : 99);
-  return meta.columns.filter((c) => c.type !== 'url' && c.hasHeader).sort((a, b) => rank(a) - rank(b) || a.index - b.index);
+  return meta.columns.filter((c) => c.type !== 'url' && c.role !== 'notes').sort((a, b) => rank(a) - rank(b) || a.index - b.index);
 }
 
 export function describeFilter(meta, key, spec) {
@@ -58,7 +58,7 @@ export default function FilterPanel({ meta, filters, onChange, onClear }) {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold text-slate-900">Advanced search</h2>
-          <p className="text-xs text-slate-500">All filters combine (AND). Options and counts come from the live sheet.</p>
+          <p className="text-xs text-slate-500">All filters combine (AND). Options and counts come from the current listings.</p>
         </div>
         <button className="btn-ghost text-xs" onClick={onClear}>Reset all</button>
       </div>

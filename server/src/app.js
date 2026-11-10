@@ -30,7 +30,9 @@ app.use(helmet({
   strictTransportSecurity: config.isProd,
 }));
 app.use(compression());
-app.use(express.json({ limit: '20kb' }));
+// CSV imports carry the whole file; everything else is small.
+app.use('/api/jv/import', express.json({ limit: '4mb' }));
+app.use(express.json({ limit: '40kb' }));
 app.use(cookieParser());
 
 // Private business data: never let browsers/proxies cache API responses.

@@ -5,3 +5,4 @@ client/dist/
 service-account*.json
 credentials/
 .vercel/
+/data/

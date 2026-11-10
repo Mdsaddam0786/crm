@@ -1,14 +1,14 @@
 import { ExternalLink, MapPin, Phone, Mail } from 'lucide-react';
 import { displayValue, formatPhone, isPlaceholder, linkLabel, telLink } from '../lib/format.js';
 
-/** Renders one spreadsheet cell with type-aware actions. `compact` is for table cells. */
+/** Renders one field value with type-aware actions. `compact` is for table cells. */
 export default function CellValue({ meta, col, rec, compact = false }) {
   const raw = rec.values[col.key] ?? '';
   const text = displayValue(meta, col, rec);
   const stop = (e) => e.stopPropagation();
 
   if (!raw) return <span className="text-slate-300">{compact ? '—' : <em className="not-italic text-slate-400">Not recorded</em>}</span>;
-  if (isPlaceholder(raw)) return <span className="italic text-slate-400" title="Placeholder value in the sheet">{raw}</span>;
+  if (isPlaceholder(raw)) return <span className="italic text-slate-400" title="Placeholder value">{raw}</span>;
 
   if (col.type === 'url' && /^https?:\/\//i.test(raw)) {
     const isMap = col.role === 'mapLink' || /maps/.test(raw);
@@ -32,6 +32,6 @@ export default function CellValue({ meta, col, rec, compact = false }) {
   if (col.type === 'email') {
     return <a href={`mailto:${raw}`} onClick={stop} className="link"><Mail className="h-3.5 w-3.5" aria-hidden />{raw}</a>;
   }
-  if (text !== raw) return <span title={`Stored in sheet as "${raw}"`}>{text}</span>;
+  if (text !== raw) return <span title={`Stored as "${raw}"`}>{text}</span>;
   return <span className={compact ? '' : 'whitespace-pre-wrap break-words'}>{raw}</span>;
 }

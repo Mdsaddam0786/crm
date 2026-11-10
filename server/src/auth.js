@@ -37,6 +37,6 @@ export function requireAuth(req, res, next) {
   }
 }
 
-export function requireRole(role) {
-  return (req, res, next) => (req.user?.role === role ? next() : res.status(403).json({ error: 'You do not have permission for this action.', code: 'FORBIDDEN' }));
+export function requireRole(...roles) {
+  return (req, res, next) => (roles.includes(req.user?.role) ? next() : res.status(403).json({ error: 'You do not have permission for this action.', code: 'FORBIDDEN' }));
 }

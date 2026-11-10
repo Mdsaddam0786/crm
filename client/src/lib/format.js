@@ -3,7 +3,7 @@ const PLACEHOLDERS = new Set(['-', '--', '—', 'tbd', 'na', 'n/a', 'not provide
 export const isPlaceholder = (v) => PLACEHOLDERS.has(String(v ?? '').trim().toLowerCase());
 export const digits = (v) => String(v ?? '').replace(/\D/g, '');
 
-/** Display text for a cell. Original value is always kept; only known Sheets auto-format quirks are reversed. */
+/** Display text for a value. Reverses the spreadsheet time-format quirk on imported sharing ratios. */
 export function displayValue(meta, col, rec) {
   const raw = rec.values[col.key] ?? '';
   if (col.key === meta.roles.sharing && rec.derived.sharingDisplay) return rec.derived.sharingDisplay;
@@ -47,9 +47,3 @@ export function timeAgo(iso) {
 }
 
 export const fmtNum = (n, d = 2) => (n == null ? '—' : Number(n).toLocaleString('en-IN', { maximumFractionDigits: d }));
-
-export const MODE_LABELS = {
-  service_account: 'Google Sheets API · Service account',
-  api_key: 'Google Sheets API · API key',
-  public_csv: 'Link-shared sheet (no credentials)',
-};

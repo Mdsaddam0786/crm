@@ -2,9 +2,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, CalendarDays, Contact, Ruler, Star, Table2 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { useApi, useApp } from '../lib/AppContext.jsx';
-import { BarList, Card, ErrorState, LoadingCards, PageHeader, StatCard } from '../components/ui.jsx';
+import { BarList, Card, EmptyState, ErrorState, LoadingCards, PageHeader, StatCard } from '../components/ui.jsx';
 import CellValue from '../components/CellValue.jsx';
-import { fmtNum, timeAgo } from '../lib/format.js';
+import { fmtNum } from '../lib/format.js';
 
 export const filterLink = (key, value) => `/listings?f=${encodeURIComponent(JSON.stringify({ [key]: { op: 'in', values: [value] } }))}`;
 
@@ -39,7 +39,7 @@ function MonthCard({ byMonth, total }) {
 }
 
 export default function Dashboard() {
-  const { meta, sync } = useApp();
+  const { meta, canEdit } = useApp();
   const navigate = useNavigate();
   const { data, error } = useApi('/jv/stats');
 
@@ -54,11 +54,13 @@ export default function Dashboard() {
     <div className="animate-fade-in">
       <PageHeader
         title="Dashboard"
-        subtitle={s ? `Overview of ${s.totalRecords} JV listings in “${s.tab.name}” · synced ${timeAgo(sync?.syncedAt)}` : 'Loading live data from Google Sheets…'}
+        subtitle={s ? `Overview of ${s.totalRecords} JV listings` : 'Loading…'}
         actions={<Link to="/listings" className="btn-primary">Browse listings <ArrowRight className="h-4 w-4" aria-hidden /></Link>}
       />
 
-      {!s || !meta ? <LoadingCards /> : (
+      {!s || !meta ? <LoadingCards /> : s.totalRecords === 0 ? (
+        <Card><EmptyState icon={Table2} title="No listings yet" message={canEdit ? 'Add your first JV listing, or import existing ones from a CSV file in Settings.' : 'Listings will appear here once your team adds them.'} action={canEdit && <Link to="/listings/new" className="btn-primary">Add a listing</Link>} /></Card>
+      ) : (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard icon={Table2} label="Total JV listings" value={s.totalRecords} hint={`${s.totalColumns} fields per record`} />
@@ -90,7 +92,7 @@ export default function Dashboard() {
                     </li>
                   ))}
                 </ul>
-                {s.pipeline.every((p) => p.filled === 0) && <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-500">None of these columns have values in the sheet yet. They will update automatically once the team fills them in.</p>}
+                {s.pipeline.every((p) => p.filled === 0) && <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-500">None of these stages have been recorded yet. Use Edit on a listing to fill them in.</p>}
               </Card>
             )}
             {s.breakdowns.updatedBy && (
@@ -112,7 +114,7 @@ export default function Dashboard() {
                     <tr key={r.id} className="cursor-pointer hover:bg-slate-50" onClick={() => navigate(`/listings/${encodeURIComponent(r.id)}`)}>
                       {recentCols.map((c) => (
                         <td key={c.key} className={`max-w-[18rem] truncate px-5 py-3 ${c.role === 'jvId' ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
-                          {c.role === 'jvId' ? <Link to={`/listings/${encodeURIComponent(r.id)}`} className="hover:text-brand-700">{r.values[c.key] || `Row ${r.row}`}</Link> : <CellValue meta={meta} col={c} rec={r} compact />}
+                          {c.role === 'jvId' ? <Link to={`/listings/${encodeURIComponent(r.id)}`} className="hover:text-brand-700">{r.values[c.key] || 'Untitled'}</Link> : <CellValue meta={meta} col={c} rec={r} compact />}
                         </td>
                       ))}
                     </tr>

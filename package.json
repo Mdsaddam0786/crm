@@ -3,15 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Joint Venture CRM backed by the company's JV Listing Google Sheet (read-only).",
+  "description": "Joint Venture CRM for managing JV land listings.",
   "scripts": {
     "dev": "concurrently -k -n api,web -c blue,green \"node --watch server/src/index.js\" \"vite\"",
     "build": "vite build",
     "start": "node server/src/index.js",
     "hash-password": "node server/scripts/hash-password.js",
-    "test:connection": "node server/scripts/test-connection.js"
+    "import": "node server/scripts/import-csv.js"
   },
-  "engines": { "node": ">=18.18" },
+  "engines": {
+    "node": ">=18.18"
+  },
   "dependencies": {
     "bcryptjs": "2.4.3",
     "compression": "1.7.5",
@@ -19,9 +21,9 @@
     "dotenv": "16.4.7",
     "express": "4.21.2",
     "express-rate-limit": "7.5.0",
-    "google-auth-library": "9.15.1",
     "helmet": "8.0.0",
-    "jsonwebtoken": "9.0.2"
+    "jsonwebtoken": "9.0.2",
+    "mongodb": "^6.12.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "4.3.4",

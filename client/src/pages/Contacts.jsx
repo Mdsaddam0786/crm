@@ -51,7 +51,7 @@ export default function Contacts() {
                       {c.listings.map((l) => (
                         <li key={l.id}>
                           <Link to={`/listings/${encodeURIComponent(l.id)}`} className="block rounded-md px-2 py-1.5 text-sm hover:bg-slate-50">
-                            <span className="font-medium text-brand-700">{l.jvId || `Row ${l.row}`}</span>
+                            <span className="font-medium text-brand-700">{l.jvId || 'Untitled'}</span>
                             {l.location && <span className="text-slate-500"> · {l.location}</span>}
                           </Link>
                         </li>

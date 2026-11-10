@@ -112,7 +112,7 @@ export function LoadingCards({ count = 4 }) {
 }
 
 /** Horizontal bar list — clearer than a chart for a handful of categories. */
-export function BarList({ items, total, onSelect, emptyText = 'No values recorded in the sheet yet.' }) {
+export function BarList({ items, total, onSelect, emptyText = 'No values recorded yet.' }) {
   const visible = (items || []).filter((i) => i.value !== '__blank__');
   const blank = (items || []).find((i) => i.value === '__blank__');
   if (!visible.length) return <p className="py-6 text-center text-sm text-slate-500">{emptyText}</p>;
@@ -127,7 +127,7 @@ export function BarList({ items, total, onSelect, emptyText = 'No values recorde
               disabled={!onSelect}
               onClick={() => onSelect?.(i)}
               className="group block w-full text-left disabled:cursor-default"
-              title={i.variants?.length > 1 ? `Spellings in sheet: ${i.variants.join(', ')}` : undefined}
+              title={i.variants?.length > 1 ? `Spellings used: ${i.variants.join(', ')}` : undefined}
             >
               <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
                 <span className="truncate font-medium text-slate-700 group-enabled:group-hover:text-brand-700">{i.label}</span>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Columns3, Download, Search, SlidersHorizontal, SearchX, X } from 'lucide-react';
+import { AlertCircle, ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Columns3, Download, Plus, Search, SlidersHorizontal, SearchX, X } from 'lucide-react';
 import { useApi, useApp } from '../lib/AppContext.jsx';
 import { Card, ErrorState, PageHeader, Skeleton, EmptyState } from '../components/ui.jsx';
 import CellValue from '../components/CellValue.jsx';
@@ -15,14 +15,14 @@ function parseJson(s) {
 }
 
 function useHiddenColumns(meta) {
-  const storageKey = meta ? `jvcrm.hidden.${meta.tab.name}` : null;
+  const storageKey = 'jvcrm.hidden.v2';
   const [hidden, setHidden] = useState(null);
   useEffect(() => {
     if (!meta) return;
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(storageKey)); } catch { /* ignore */ }
     // Default: hide only header-less columns that hold no data.
-    setHidden(Array.isArray(saved) ? saved : meta.columns.filter((c) => !c.hasHeader && c.filled === 0).map((c) => c.key));
+    setHidden(Array.isArray(saved) ? saved : meta.columns.filter((c) => c.role === 'notes').map((c) => c.key));
   }, [meta, storageKey]);
   const update = (next) => {
     setHidden(next);
@@ -87,7 +87,7 @@ function Pagination({ page, totalPages, pageSize, matched, onPage, onSize }) {
 }
 
 export default function Listings() {
-  const { meta, sheet } = useApp();
+  const { meta, canEdit } = useApp();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const q = params.get('q') || '';
@@ -99,6 +99,7 @@ export default function Listings() {
   const activeCount = Object.values(filters).filter(isActive).length;
   const [showFilters, setShowFilters] = useState(activeCount > 0);
   const [hidden, setHidden] = useHiddenColumns(meta);
+  const isEmpty = meta?.totalRecords === 0;
 
   const update = (changes, resetPage = true) => {
     const next = new URLSearchParams(params);
@@ -124,7 +125,7 @@ export default function Listings() {
     else update({ sort: '', dir: '' }, false);
   };
 
-  const exportHref = `/api/jv/export?${new URLSearchParams(Object.entries({ q, sort, dir, filters: query.filters, sheet }).filter(([, v]) => v))}`;
+  const exportHref = `/api/jv/export?${new URLSearchParams(Object.entries({ q, sort, dir, filters: query.filters }).filter(([, v]) => v))}`;
 
   if (!meta) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-96 w-full" /></div>;
 
@@ -132,7 +133,7 @@ export default function Listings() {
     <div className="animate-fade-in">
       <PageHeader
         title="JV Listings"
-        subtitle={data ? (data.matched === data.total ? `${data.total} listings · “${meta.tab.name}”` : `${data.matched} of ${data.total} listings match`) : `${meta.totalRecords} listings`}
+        subtitle={data ? (data.matched === data.total ? `${data.total} listings` : `${data.matched} of ${data.total} listings match`) : `${meta.totalRecords} listings`}
         actions={(
           <>
             <button className={showFilters || activeCount ? 'btn-primary' : 'btn-secondary'} onClick={() => setShowFilters(!showFilters)} aria-expanded={showFilters}>
@@ -140,6 +141,7 @@ export default function Listings() {
             </button>
             <ColumnsMenu columns={columns} hidden={hidden} onChange={setHidden} />
             <a className="btn-secondary" href={exportHref} download><Download className="h-4 w-4" aria-hidden />Export CSV</a>
+            {canEdit && <Link to="/listings/new" className="btn-primary"><Plus className="h-4 w-4" aria-hidden />New listing</Link>}
           </>
         )}
       />
@@ -193,7 +195,7 @@ export default function Listings() {
                       <td key={c.key} className={`max-w-[22rem] ${WIDE_ROLES.has(c.role) ? 'min-w-[14rem]' : 'min-w-[7.5rem]'} border-b border-slate-100 px-4 py-3 align-top group-hover:bg-brand-50/40 ${i === 0 ? 'sticky left-0 z-[5] border-r bg-white font-medium text-slate-900' : 'text-slate-600'}`}>
                         {i === 0 ? (
                           <Link to={href} state={{ back: `/listings?${params}` }} onClick={(e) => e.stopPropagation()} className="inline-flex items-center gap-1.5 whitespace-nowrap hover:text-brand-700">
-                            {rec.values[c.key] || <span className="text-slate-400">Row {rec.row}</span>}
+                            {rec.values[c.key] || <span className="text-slate-400">Untitled</span>}
                             {rec.flags.length > 0 && <AlertCircle className="h-3.5 w-3.5 text-amber-500" aria-label="Has data notes" />}
                           </Link>
                         ) : <div className="line-clamp-2"><CellValue meta={meta} col={c} rec={rec} compact /></div>}
@@ -205,7 +207,7 @@ export default function Listings() {
             </tbody>
           </table>
           {data && data.items.length === 0 && (
-            <EmptyState icon={SearchX} title="No listings match" message="Try a different search term or remove some filters." action={<button className="btn-secondary" onClick={() => setParams({}, { replace: true })}>Clear search & filters</button>} />
+            <EmptyState icon={SearchX} title={isEmpty ? 'No listings yet' : 'No listings match'} message={isEmpty ? 'Add a listing, or import a CSV file from Settings.' : 'Try a different search term or remove some filters.'} action={isEmpty ? (canEdit && <Link to="/listings/new" className="btn-primary">Add a listing</Link>) : <button className="btn-secondary" onClick={() => setParams({}, { replace: true })}>Clear search & filters</button>} />
           )}
           {loading && data && <div className="pointer-events-none absolute inset-x-0 top-0 h-0.5 animate-pulse bg-brand-500" />}
         </div>

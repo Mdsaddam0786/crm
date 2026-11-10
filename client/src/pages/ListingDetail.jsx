@@ -1,9 +1,13 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Copy, ExternalLink, FileSpreadsheet, MapPin, MessageCircle, Phone, Star, UserRound } from 'lucide-react';
+import { useState } from 'react';
+import { AlertCircle, ArrowLeft, ChevronLeft, ChevronRight, Copy, ExternalLink, MapPin, MessageCircle, Pencil, Phone, Star, Trash2, UserRound } from 'lucide-react';
+import { api, errorInfo } from '../lib/api.js';
 import { useApi, useApp } from '../lib/AppContext.jsx';
 import { Badge, Card, ErrorState, Skeleton } from '../components/ui.jsx';
 import CellValue from '../components/CellValue.jsx';
 import { fmtNum, formatPhone, telLink, whatsappLink } from '../lib/format.js';
+
+const fmtDate = (iso) => (iso ? new Date(iso).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 
 function Field({ meta, col, rec, onCopy }) {
   const raw = rec.values[col.key];
@@ -14,7 +18,6 @@ function Field({ meta, col, rec, onCopy }) {
     <div className="group py-3 sm:grid sm:grid-cols-5 sm:gap-4">
       <dt className="text-xs font-medium uppercase tracking-wide text-slate-500 sm:col-span-2 sm:pt-0.5">
         {col.label}
-        <span className="ml-1.5 font-normal normal-case tracking-normal text-slate-300">col {col.letter}</span>
       </dt>
       <dd className="mt-1 text-sm text-slate-900 sm:col-span-3 sm:mt-0">
         <div className="flex items-start gap-2">
@@ -30,7 +33,8 @@ function Field({ meta, col, rec, onCopy }) {
 
 export default function ListingDetail() {
   const { id } = useParams();
-  const { meta, notify } = useApp();
+  const { meta, notify, canEdit, isAdmin, reload } = useApp();
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { data, error, loading } = useApi(`/jv/${encodeURIComponent(id)}`);
@@ -39,6 +43,20 @@ export default function ListingDetail() {
   const copy = async (text, label) => {
     try { await navigator.clipboard.writeText(text); notify(`${label} copied`); } catch { notify('Copy is not available in this browser', 'error'); }
   };
+
+  async function remove() {
+    if (!window.confirm(`Delete listing ${data.record.jvId || ''} permanently? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/jv/${encodeURIComponent(id)}`);
+      notify('Listing deleted.');
+      reload();
+      navigate(back, { replace: true });
+    } catch (e) {
+      notify(errorInfo(e).message, 'error');
+      setDeleting(false);
+    }
+  }
 
   if (error) {
     return (
@@ -81,7 +99,7 @@ export default function ListingDetail() {
         <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wide text-slate-500">JV listing{rec.derived.monthLabel ? ` · ${rec.derived.monthLabel}` : ''}</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{rec.jvId || `Row ${rec.row}`}</h1>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{rec.jvId || 'Untitled listing'}</h1>
             {v('location') && <p className="mt-1.5 flex items-center gap-1.5 text-slate-600"><MapPin className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />{v('location')}</p>}
             <div className="mt-3 flex flex-wrap gap-2">
               {v('rating') && <Badge tone="amber"><Star className="h-3 w-3" aria-hidden />Rating {v('rating')}</Badge>}
@@ -94,7 +112,8 @@ export default function ListingDetail() {
             {tel && <a href={tel} className="btn-primary"><Phone className="h-4 w-4" aria-hidden />Call {formatPhone(phone)}</a>}
             {wa && <a href={wa} target="_blank" rel="noopener noreferrer" className="btn-secondary"><MessageCircle className="h-4 w-4" aria-hidden />WhatsApp<ExternalLink className="h-3 w-3 opacity-60" aria-hidden /></a>}
             {/^https?:\/\//.test(map) && <a href={map} target="_blank" rel="noopener noreferrer" className="btn-secondary"><MapPin className="h-4 w-4" aria-hidden />Map<ExternalLink className="h-3 w-3 opacity-60" aria-hidden /></a>}
-            <a href={data.rowUrl} target="_blank" rel="noopener noreferrer" className="btn-secondary" title="Open this row in the original Google Sheet"><FileSpreadsheet className="h-4 w-4" aria-hidden />Open in Sheet<ExternalLink className="h-3 w-3 opacity-60" aria-hidden /></a>
+            {canEdit && <Link to={`/listings/${encodeURIComponent(rec.id)}/edit`} className="btn-secondary"><Pencil className="h-4 w-4" aria-hidden />Edit</Link>}
+            {isAdmin && <button className="btn-secondary text-red-600 hover:border-red-200 hover:bg-red-50" onClick={remove} disabled={deleting}><Trash2 className="h-4 w-4" aria-hidden />Delete</button>}
           </div>
         </div>
       </div>
@@ -113,16 +132,15 @@ export default function ListingDetail() {
           )}
         </div>
         <div className="space-y-6">
-          <Card title="Record source">
+          <Card title="Record history">
             <dl className="space-y-3 text-sm">
-              <div className="flex justify-between gap-3"><dt className="text-slate-500">Worksheet</dt><dd className="font-medium text-slate-800">{meta.tab.name}</dd></div>
-              <div className="flex justify-between gap-3"><dt className="text-slate-500">Sheet row</dt><dd className="font-medium tabular-nums text-slate-800">{rec.row}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-slate-500">Created</dt><dd className="text-right font-medium text-slate-800">{fmtDate(rec.createdAt)}{rec.createdBy && <span className="block text-xs font-normal text-slate-500">by {rec.createdBy}</span>}</dd></div>
+              <div className="flex justify-between gap-3"><dt className="text-slate-500">Last updated</dt><dd className="text-right font-medium text-slate-800">{fmtDate(rec.updatedAt)}{rec.updatedBy && <span className="block text-xs font-normal text-slate-500">by {rec.updatedBy}</span>}</dd></div>
               <div className="flex justify-between gap-3"><dt className="text-slate-500">Fields filled</dt><dd className="font-medium tabular-nums text-slate-800">{meta.columns.filter((c) => rec.values[c.key]).length} / {meta.columns.length}</dd></div>
             </dl>
-            <p className="mt-4 rounded-lg bg-slate-50 p-3 text-xs text-slate-500">Values are shown exactly as stored in Google Sheets. To change this record, edit the sheet, then refresh the CRM.</p>
           </Card>
           {rec.flags.length > 0 && (
-            <Card title="Data notes" subtitle="Detected automatically — the sheet is unchanged">
+            <Card title="Data notes" subtitle="Detected automatically — fix them with Edit">
               <ul className="space-y-2 text-sm">
                 {rec.flags.map((f) => <li key={f.msg} className="flex gap-2 text-amber-800"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" aria-hidden />{f.msg}</li>)}
               </ul>
