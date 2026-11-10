@@ -6,7 +6,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import rateLimit from 'express-rate-limit';
-import { config } from './config.js';
+import { config, configErrors } from './config.js';
 import { verifyLogin, issueSession, clearSession, requireAuth } from './auth.js';
 import jvRoutes from './routes/jv.js';
 
@@ -38,7 +38,14 @@ app.use(cookieParser());
 // Private business data: never let browsers/proxies cache API responses.
 app.use('/api', (req, res, next) => { res.setHeader('Cache-Control', 'no-store'); next(); });
 
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+app.get('/api/health', (req, res) => res.status(configErrors.length ? 500 : 200).json({ ok: !configErrors.length, configErrors }));
+
+// Refuse to serve anything until the deployment is configured correctly.
+app.use('/api', (req, res, next) => {
+  if (!configErrors.length) return next();
+  console.error('[config]', configErrors.join(' '));
+  res.status(500).json({ error: `Server configuration error: ${configErrors.join(' ')} Fix the environment variables in Vercel and redeploy.`, code: 'CONFIG' });
+});
 
 const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: 'draft-7', legacyHeaders: false, message: { error: 'Too many sign-in attempts. Try again in 15 minutes.' } });
 
