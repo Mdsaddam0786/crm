@@ -1,0 +1,40 @@
+{
+  "name": "jv-crm",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Joint Venture CRM backed by the company's JV Listing Google Sheet (read-only).",
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"node --watch server/src/index.js\" \"vite\"",
+    "build": "vite build",
+    "start": "node server/src/index.js",
+    "hash-password": "node server/scripts/hash-password.js",
+    "test:connection": "node server/scripts/test-connection.js"
+  },
+  "engines": { "node": ">=18.18" },
+  "dependencies": {
+    "bcryptjs": "2.4.3",
+    "compression": "1.7.5",
+    "cookie-parser": "1.4.7",
+    "dotenv": "16.4.7",
+    "express": "4.21.2",
+    "express-rate-limit": "7.5.0",
+    "google-auth-library": "9.15.1",
+    "helmet": "8.0.0",
+    "jsonwebtoken": "9.0.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.3.4",
+    "autoprefixer": "10.4.20",
+    "axios": "1.7.9",
+    "concurrently": "9.1.0",
+    "lucide-react": "0.468.0",
+    "postcss": "8.4.49",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-router-dom": "6.28.0",
+    "recharts": "2.15.0",
+    "tailwindcss": "3.4.17",
+    "vite": "5.4.11"
+  }
+}

@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  :focus-visible { outline: 2px solid theme('colors.brand.500'); outline-offset: 2px; }
+}
+
+@layer components {
+  .card { @apply rounded-xl border border-slate-200/80 bg-white shadow-card; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-brand-600 text-white hover:bg-brand-700; }
+  .btn-secondary { @apply btn border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300; }
+  .btn-ghost { @apply btn text-slate-600 hover:bg-slate-100; }
+  .input { @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 transition focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10; }
+  .label { @apply mb-1.5 block text-xs font-medium uppercase tracking-wide text-slate-500; }
+  .link { @apply inline-flex items-center gap-1 font-medium text-brand-700 hover:text-brand-800 hover:underline; }
+}
+
+.scrollbar-thin::-webkit-scrollbar { height: 10px; width: 10px; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; border: 2px solid #fff; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+
+@keyframes fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.animate-fade-in { animation: fade-in .2s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .animate-fade-in { animation: none; } }
